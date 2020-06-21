@@ -1,0 +1,3 @@
+# デフォルト認証プラグインの設定
+[mysqld]
+default-authentication-plugin = mysql_native_password

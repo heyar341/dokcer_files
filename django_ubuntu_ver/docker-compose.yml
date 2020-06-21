@@ -1,0 +1,46 @@
+version: '3'
+services:
+    web:
+        image: nginx:1.16.1
+        ports:
+            - '8000:80'
+        depends_on: 
+            - app
+        volumes: 
+            - ./docker/nginx/conf/default.conf:/etc/nginx/conf.d/default.conf
+            - ./docker/nginx/uwsgi_params:/etc/nginx/uwsgi_params
+            - ./static:/static
+        environment:
+            TZ: Asia/Tokyo
+    app:
+        container_name: django-docker
+        build: ./docker/python
+        working_dir: /code
+        command: uwsgi --socket :8001 --module app.wsgi --py-autoreload 1 --logto /tmp/mylog.log
+        volumes:
+            - ./src:/code
+            - ./static:/static
+        expose: 
+            - "8001"
+        depends_on:
+            - mysql
+        environment:
+            LANG: ja_JA.UTF-8
+            TZ: Asia/Tokyo
+    mysql:
+        container_name: django-docker-db
+        image: mysql:8.0
+        environment:
+            MYSQL_DATABASE: django-docker
+            MYSQL_USER: user
+            MYSQL_PASSWORD: password
+            MYSQL_ROOT_PASSWORD: password
+            TZ: Asia/Tokyo
+        volumes:
+            - mysql-data:/var/lib/mysql
+            - ./docker/mysql/mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+        ports:
+            - '3306:3306'
+
+volumes: 
+    mysql-data:
